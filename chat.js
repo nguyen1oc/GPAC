@@ -147,28 +147,37 @@ chatForm.onsubmit = async function(e) {
       if (replyText.startsWith('```json')) {
         replyText = replyText.replace(/^```json/, '').replace(/```$/, '').trim();
       }
-      //console.log('Gemini trả về (sau khi loại markdown nếu có):', replyText);
-      try {
-        const obj = JSON.parse(replyText);
-        //console.log('Đã parse JSON:', obj);
-        if (Array.isArray(obj)) {
-          // Nếu là mảng, lặp qua từng object
-          let allOk = true;
-          for (const o of obj) {
-            if (!tryApplyEditCommand(JSON.stringify(o))) {
-              allOk = false;
+      if (replyText.startsWith('{') || replyText.startsWith('[')) {
+        try {
+          const obj = JSON.parse(replyText);
+          if (Array.isArray(obj)) {
+            let anyOk = false;
+            for (const o of obj) {
+              if (o && o.action === 'edit_score' && tryApplyEditCommand(JSON.stringify(o))) {
+                anyOk = true;
+              }
             }
-          }
-          if (allOk) {
+            if (anyOk) {
+              appendMessage('Đã cập nhật điểm theo yêu cầu!', 'gemini');
+              ok = true;
+            } else {
+              appendMessage(replyText, 'gemini');
+              ok = true;
+            }
+          } else if (obj && obj.action === 'edit_score' && tryApplyEditCommand(JSON.stringify(obj))) {
             appendMessage('Đã cập nhật điểm theo yêu cầu!', 'gemini');
             ok = true;
+          } else {
+            appendMessage(replyText, 'gemini');
+            ok = true;
           }
-        } else if (obj && tryApplyEditCommand(JSON.stringify(obj))) {
-          appendMessage('Đã cập nhật điểm theo yêu cầu!', 'gemini');
+        } catch (e) {
+          appendMessage(replyText, 'gemini');
           ok = true;
         }
-      } catch (e) {
-        //console.log('Không parse được JSON từ Gemini:', replyText);
+      } else {
+        appendMessage(replyText, 'gemini');
+        ok = true;
       }
     }
     if (!ok) {
