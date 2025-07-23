@@ -153,6 +153,17 @@
             .info-card, .gpa { padding: 10px 8px; }
             .center-btn { margin-bottom: 10px; }
         }
+        .credit {
+            position: fixed;
+            right: 32px;
+            bottom: 18px;
+            color: #888;
+            font-size: 1em;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            opacity: 0.85;
+            z-index: 100;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -169,6 +180,7 @@
             <button id="reset-btn">Nhập lại bảng điểm</button>
         </div>
     </div>
+    <div class="credit">credit: nguyen1oc</div>
     <script>
     // --- GPA logic in JS ---
     const letter_to_4 = {
@@ -247,7 +259,6 @@
     let currentInfo = {};
     inputForm.onsubmit = function(e) {
         e.preventDefault();
-        inputForm.style.display = 'none';
         const text = gpaText.value;
         const {info, subjects} = parseGpaText(text);
         currentSubjects = subjects;
@@ -329,8 +340,5 @@
         currentInfo = {};
         };
         </script>
-    <div style="text-align: right; margin-top: 32px; color: #888; font-size: 0.98em;">
-        credit: nguyen1oc
-    </div>
 </body>
 </html> 
