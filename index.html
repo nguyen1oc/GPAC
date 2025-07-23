@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>GPA Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7fafd;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px 40px 24px 40px; /* Increased left/right padding */
+        }
+        h2 {
+            color: #2a5298;
+            margin-top: 0;
+            letter-spacing: 1px;
+        }
+        form {
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        label {
+            font-weight: 500;
+            color: #2a5298;
+            align-self: flex-start;
+        }
+        textarea {
+            width: 100%;
+            max-width: 100%;
+            min-width: 200px;
+            height: 180px;
+            border: 1.5px solid #b6c6e0;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 1em;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            background: #f4f8fb;
+            transition: border 0.2s;
+            box-sizing: border-box;
+        }
+        textarea:focus {
+            border: 1.5px solid #2a5298;
+            outline: none;
+        }
+        button {
+            background: linear-gradient(90deg, #2a5298 0%, #1e3c72 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 28px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(42,82,152,0.08);
+            transition: background 0.2s, box-shadow 0.2s;
+            align-self: flex-start;
+            min-width: 220px;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 16px rgba(42,82,152,0.12);
+        }
+        .info-card {
+            background: #eaf1fb;
+            border-radius: 10px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(42,82,152,0.04);
+        }
+        .info-card strong {
+            color: #1e3c72;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(42,82,152,0.04);
+        }
+        th, td {
+            border: none;
+            padding: 10px 12px;
+            text-align: left;
+        }
+        th {
+            background: #2a5298;
+            color: #fff;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f4f8fb;
+        }
+        tr:hover {
+            background: #eaf1fb;
+        }
+        .gpa {
+            margin-top: 24px;
+            font-size: 1.15em;
+            background: #f4f8fb;
+            border-radius: 8px;
+            padding: 16px 20px;
+            color: #1e3c72;
+            box-shadow: 0 1px 4px rgba(42,82,152,0.04);
+        }
+        .center-btn {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 18px;
+            gap: 16px;
+            margin-top: 12px
+        }
+        .edit-input {
+            border: 1px solid #b6c6e0;
+            border-radius: 6px;
+            padding: 1px 4px;
+            font-size: 0.95em;
+            background: #fff;
+            box-sizing: border-box;
+            outline: none;
+            width: 40px;
+            min-width: 30px;
+            max-width: 60px;
+            height: 22px;
+            margin: 0;
+            vertical-align: middle;
+        }
+        .edit-input:focus {
+            border: 1.5px solid #2a5298;
+            box-shadow: none;
+        }
+        .editable.can-edit, .editable.can-edit:hover {
+            background: none;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        /* Responsive fix for center button */
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            th, td { font-size: 0.95em; padding: 7px 6px; }
+            .info-card, .gpa { padding: 10px 8px; }
+            .center-btn { margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>GPA Calculator</h2>
+        <form method="post" id="input-form" style="display: {{ 'none' if info else 'block' }};">
+            <label>Paste bảng điểm:</label><br>
+            <textarea name="gpa_text" required>{{ gpa_text or '' }}</textarea><br>
+            <button type="submit">Phân tích & Tính GPA</button>
+        </form>
+        <form id="recalc-form" method="post" style="display: {{ 'block' if info else 'none' }};">
+            <input type="hidden" name="gpa_text" value="{{ gpa_text|e }}">
+            <input type="hidden" id="subjects_json" name="subjects_json">
+        </form>
+        {% if info %}
+        <div class="info-card">
+            <strong>Họ tên:</strong> {{ info.name }}<br>
+            <strong>MSSV:</strong> {{ info.mssv }}<br>
+            <strong>Ngành:</strong> {{ info.major }}<br>
+            <strong>Lớp:</strong> {{ info.class }}<br>
+        </div>
+        <table id="subjects-table">
+            <tr>
+                <th>Mã môn</th><th>Tên môn</th><th>Điểm 10</th><th>Điểm chữ</th><th>Tín chỉ</th>
+            </tr>
+            {% for s in subjects %}
+            <tr>
+                <td>{{ s.code }}</td>
+                <td>{{ s.name }}</td>
+                <td class="editable" data-type="score_10" data-index="{{ loop.index0 }}">{{ s.score_10 if s.score_10 is not none else '' }}</td>
+                <td class="editable" data-type="letter" data-index="{{ loop.index0 }}">{{ s.letter }}</td>
+                <td>{{ s.credits }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="gpa">
+            <strong>GPA thang 4:</strong> {{ gpa_4|round(2) }}<br>
+            <strong>GPA thang 10:</strong> {{ gpa_10|round(2) }}<br>
+            <strong>Tổng tín chỉ tích lũy:</strong> {{ total_credits }}
+        </div>
+        <div class="center-btn">
+            <button type="submit" id="recalc-btn" form="recalc-form" style="display:none;">Tính lại GPA</button>
+            <button type="button" id="reset-btn">Nhập lại bảng điểm</button>
+        </div>
+        {% endif %}
+        <script>
+        var recalcForm = document.getElementById('recalc-form');
+        var resetBtn = document.getElementById('reset-btn');
+        var recalcBtn = document.getElementById('recalc-btn');
+        // Reset to input mode
+        if (resetBtn) {
+            resetBtn.onclick = function() {
+                document.getElementById('input-form').style.display = 'block';
+                recalcForm.style.display = 'none';
+                window.location = window.location.pathname;
+            };
+        }
+        // Allow editing on double click always
+        document.querySelectorAll('.editable').forEach(function(cell) {
+            cell.ondblclick = function() {
+                if (cell.querySelector('input')) return;
+                var oldValue = cell.innerText;
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'edit-input';
+                input.value = oldValue;
+                input.onblur = function() {
+                    cell.innerText = input.value;
+                    showRecalcButton();
+                };
+                input.onkeydown = function(e) {
+                    if (e.key === 'Enter') {
+                        input.blur();
+                    }
+                };
+                cell.innerText = '';
+                cell.appendChild(input);
+                input.focus();
+            };
+        });
+        function showRecalcButton() {
+            recalcBtn.style.display = 'inline-block';
+        }
+        // On recalc submit, collect table data and send as JSON
+        if (recalcForm) recalcForm.onsubmit = function(e) {
+            var rows = document.querySelectorAll('#subjects-table tr');
+            var data = [];
+            for (var i = 1; i < rows.length; i++) {
+                var cells = rows[i].children;
+                data.push({
+                    code: cells[0].innerText.trim(),
+                    name: cells[1].innerText.trim(),
+                    score_10: cells[2].innerText.trim(),
+                    letter: cells[3].innerText.trim(),
+                    credits: cells[4].innerText.trim()
+                });
+            }
+            document.getElementById('subjects_json').value = JSON.stringify(data);
+        };
+        </script>
+    </div>
+</body>
+</html> 
