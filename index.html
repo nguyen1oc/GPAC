@@ -247,6 +247,7 @@
     let currentInfo = {};
     inputForm.onsubmit = function(e) {
         e.preventDefault();
+        inputForm.style.display = 'none';
         const text = gpaText.value;
         const {info, subjects} = parseGpaText(text);
         currentSubjects = subjects;
