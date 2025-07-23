@@ -19,13 +19,13 @@ export default async function handler(req, res) {
           { parts: [
             { text: `Bảng điểm:\n${JSON.stringify(gpa_data)}
 
-            Yêu cầu của người dùng: "${message}"
-            
-            Trả về JSON thuần dạng sau nếu là yêu cầu chỉnh điểm:
-            {"action":"edit_score","subject_code":"<Mã môn>","score_10":<điểm số>,"letter":"<điểm chữ>"}
-            Nếu người dùng yêu cầu sửa nhiều môn, chỉ trả về một mảng object JSON hợp lệ, ví dụ: [{"action":"edit_score","subject_code":"CO1007","score_10":8,"letter":"B+"}, {"action":"edit_score","subject_code":"CO2011","score_10":4,"letter":"D"}].
-            Không bao quanh bởi markdown.`
-            }
+Yêu cầu của người dùng: "${message}"
+
+Nếu người dùng yêu cầu sửa điểm, trả về JSON thuần dạng sau:
+{"action":"edit_score","subject_code":"<Mã môn>","score_10":<điểm số>,"letter":"<điểm chữ>"}
+Nếu người dùng yêu cầu sửa nhiều môn, trả về một mảng object JSON hợp lệ, ví dụ: [{"action":"edit_score","subject_code":"CO1007","score_10":8,"letter":"B+"}, ...].
+Nếu KHÔNG phải yêu cầu sửa điểm, hãy trả lời tự nhiên bằng tiếng Việt, KHÔNG trả về JSON, KHÔNG trả về mảng rỗng, KHÔNG markdown.
+` }
           ] }
         ]
       })
