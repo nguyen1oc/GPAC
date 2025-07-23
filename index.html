@@ -17,7 +17,7 @@
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            padding: 32px 40px 24px 40px; /* Increased left/right padding */
+            padding: 32px 40px 24px 40px;
         }
         h2 {
             color: #2a5298;
@@ -147,7 +147,6 @@
             font-weight: normal;
             cursor: pointer;
         }
-        /* Responsive fix for center button */
         @media (max-width: 600px) {
             .container { padding: 10px; }
             th, td { font-size: 0.95em; padding: 7px 6px; }
@@ -159,101 +158,175 @@
 <body>
     <div class="container">
         <h2>GPA Calculator</h2>
-        <form method="post" id="input-form" style="display: {{ 'none' if info else 'block' }};">
+        <form id="input-form">
             <label>Paste bảng điểm:</label><br>
-            <textarea name="gpa_text" required>{{ gpa_text or '' }}</textarea><br>
+            <textarea id="gpa_text" required></textarea><br>
             <button type="submit">Phân tích & Tính GPA</button>
         </form>
-        <form id="recalc-form" method="post" style="display: {{ 'block' if info else 'none' }};">
-            <input type="hidden" name="gpa_text" value="{{ gpa_text|e }}">
-            <input type="hidden" id="subjects_json" name="subjects_json">
-        </form>
-        {% if info %}
-        <div class="info-card">
-            <strong>Họ tên:</strong> {{ info.name }}<br>
-            <strong>MSSV:</strong> {{ info.mssv }}<br>
-            <strong>Ngành:</strong> {{ info.major }}<br>
-            <strong>Lớp:</strong> {{ info.class }}<br>
+        <div id="result-area" style="display:none;"></div>
+        <div class="center-btn" id="action-btns" style="display:none;">
+            <button id="recalc-btn" style="display:none;">Tính lại GPA</button>
+            <button id="reset-btn">Nhập lại bảng điểm</button>
         </div>
-        <table id="subjects-table">
+    </div>
+    <script>
+    // --- GPA logic in JS ---
+    const letter_to_4 = {
+        'A+': 4.0, 'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 'D+': 1.5, 'D': 1.0, 'F': 0.0
+    };
+    function parseGpaText(text) {
+        const info = {name: '', mssv: '', major: '', class: ''};
+        info.name = (text.match(/Họ và tên:\s*(.+)/) || [,''])[1].trim();
+        info.mssv = (text.match(/Mã sinh viên:\s*(\d+)/) || [,''])[1].trim();
+        info.major = (text.match(/Ngành:\s*(.+)/) || [,''])[1].trim();
+        info.class = (text.match(/Mã lớp:\s*(\w+)/) || [,''])[1].trim();
+        const subjects = [];
+        text.split(/\r?\n/).forEach(line => {
+            if (!/[A-Z]{2}\d{4,}/.test(line)) return;
+            const parts = line.trim().split(/\t+|\s{2,}/);
+            if (parts.length < 6) return;
+            let score_10 = parts[3] !== '--' ? parseFloat(parts[3]) : '';
+            if (isNaN(score_10)) score_10 = '';
+            const letter = parts[4];
+            let credits = parseInt(parts[5]);
+            if (isNaN(credits)) credits = 0;
+            subjects.push({
+                code: parts[1],
+                name: parts[2],
+                score_10: score_10,
+                letter: letter,
+                credits: credits
+            });
+        });
+        return {info, subjects};
+    }
+    function calculateGPA(subjects) {
+        let total_4 = 0, total_credits_4 = 0;
+        let total_10 = 0, total_credits_10 = 0;
+        let total_credits = 0;
+        for (const subj of subjects) {
+            const code = subj.code || '';
+            const credits = subj.credits;
+            const score_10 = subj.score_10;
+            const letter = subj.letter;
+            const valid_10 = score_10 !== '' && !isNaN(score_10);
+            const valid_4 = letter_to_4.hasOwnProperty(letter);
+            const is_english = code.startsWith('LA');
+            let count_credit = false;
+            if (credits > 0) {
+                if (is_english) {
+                    if ((valid_10 && valid_4 && letter !== 'F') || (score_10 == 12 && (!letter || letter === '--')))
+                        count_credit = true;
+                } else {
+                    if (valid_10 && valid_4 && letter !== 'F')
+                        count_credit = true;
+                }
+            }
+            if (count_credit) total_credits += credits;
+            if (valid_4 && credits > 0) {
+                total_4 += letter_to_4[letter] * credits;
+                total_credits_4 += credits;
+            }
+            if (valid_10 && credits > 0 && !is_english) {
+                total_10 += score_10 * credits;
+                total_credits_10 += credits;
+            }
+        }
+        const gpa_4 = total_credits_4 > 0 ? total_4 / total_credits_4 : 0;
+        const gpa_10 = total_credits_10 > 0 ? total_10 / total_credits_10 : 0;
+        return {gpa_4, gpa_10, total_credits};
+    }
+    // --- UI logic ---
+    const inputForm = document.getElementById('input-form');
+    const gpaText = document.getElementById('gpa_text');
+    const resultArea = document.getElementById('result-area');
+    const recalcBtn = document.getElementById('recalc-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const actionBtns = document.getElementById('action-btns');
+    let currentSubjects = [];
+    let currentInfo = {};
+    inputForm.onsubmit = function(e) {
+        e.preventDefault();
+        const text = gpaText.value;
+        const {info, subjects} = parseGpaText(text);
+        currentSubjects = subjects;
+        currentInfo = info;
+        renderResult();
+    };
+    function renderResult() {
+        const {gpa_4, gpa_10, total_credits} = calculateGPA(currentSubjects);
+        let html = '';
+        html += `<div class="info-card">
+            <strong>Họ tên:</strong> ${currentInfo.name}<br>
+            <strong>MSSV:</strong> ${currentInfo.mssv}<br>
+            <strong>Ngành:</strong> ${currentInfo.major}<br>
+            <strong>Lớp:</strong> ${currentInfo.class}<br>
+        </div>`;
+        html += `<table id="subjects-table">
             <tr>
                 <th>Mã môn</th><th>Tên môn</th><th>Điểm 10</th><th>Điểm chữ</th><th>Tín chỉ</th>
-            </tr>
-            {% for s in subjects %}
-            <tr>
-                <td>{{ s.code }}</td>
-                <td>{{ s.name }}</td>
-                <td class="editable" data-type="score_10" data-index="{{ loop.index0 }}">{{ s.score_10 if s.score_10 is not none else '' }}</td>
-                <td class="editable" data-type="letter" data-index="{{ loop.index0 }}">{{ s.letter }}</td>
-                <td>{{ s.credits }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <div class="gpa">
-            <strong>GPA thang 4:</strong> {{ gpa_4|round(2) }}<br>
-            <strong>GPA thang 10:</strong> {{ gpa_10|round(2) }}<br>
-            <strong>Tổng tín chỉ tích lũy:</strong> {{ total_credits }}
-        </div>
-        <div class="center-btn">
-            <button type="submit" id="recalc-btn" form="recalc-form" style="display:none;">Tính lại GPA</button>
-            <button type="button" id="reset-btn">Nhập lại bảng điểm</button>
-        </div>
-        {% endif %}
-        <script>
-        var recalcForm = document.getElementById('recalc-form');
-        var resetBtn = document.getElementById('reset-btn');
-        var recalcBtn = document.getElementById('recalc-btn');
-        // Reset to input mode
-        if (resetBtn) {
-            resetBtn.onclick = function() {
-                document.getElementById('input-form').style.display = 'block';
-                recalcForm.style.display = 'none';
-                window.location = window.location.pathname;
-            };
-        }
-        // Allow editing on double click always
-        document.querySelectorAll('.editable').forEach(function(cell) {
+            </tr>`;
+        currentSubjects.forEach((s, i) => {
+            html += `<tr>
+                <td>${s.code}</td>
+                <td>${s.name}</td>
+                <td class="editable" data-type="score_10" data-index="${i}">${s.score_10 !== '' ? s.score_10 : ''}</td>
+                <td class="editable" data-type="letter" data-index="${i}">${s.letter}</td>
+                <td>${s.credits}</td>
+            </tr>`;
+        });
+        html += `</table>`;
+        html += `<div class="gpa">
+            <strong>GPA thang 4:</strong> ${gpa_4.toFixed(2)}<br>
+            <strong>GPA thang 10:</strong> ${gpa_10.toFixed(2)}<br>
+            <strong>Tổng tín chỉ tích lũy:</strong> ${total_credits}
+        </div>`;
+        resultArea.innerHTML = html;
+        resultArea.style.display = 'block';
+        actionBtns.style.display = 'flex';
+        recalcBtn.style.display = 'none';
+        attachEditEvents();
+    }
+    function attachEditEvents() {
+        document.querySelectorAll('.editable').forEach(cell => {
             cell.ondblclick = function() {
                 if (cell.querySelector('input')) return;
-                var oldValue = cell.innerText;
-                var input = document.createElement('input');
+                const idx = parseInt(cell.getAttribute('data-index'));
+                const type = cell.getAttribute('data-type');
+                const oldValue = cell.innerText;
+                const input = document.createElement('input');
                 input.type = 'text';
                 input.className = 'edit-input';
                 input.value = oldValue;
                 input.onblur = function() {
                     cell.innerText = input.value;
-                    showRecalcButton();
+                    if (type === 'score_10') {
+                        currentSubjects[idx].score_10 = input.value !== '' ? parseFloat(input.value) : '';
+                    } else if (type === 'letter') {
+                        currentSubjects[idx].letter = input.value;
+                    }
+                    recalcBtn.style.display = 'inline-block';
                 };
                 input.onkeydown = function(e) {
-                    if (e.key === 'Enter') {
-                        input.blur();
-                    }
+                    if (e.key === 'Enter') input.blur();
                 };
                 cell.innerText = '';
                 cell.appendChild(input);
                 input.focus();
             };
         });
-        function showRecalcButton() {
-            recalcBtn.style.display = 'inline-block';
-        }
-        // On recalc submit, collect table data and send as JSON
-        if (recalcForm) recalcForm.onsubmit = function(e) {
-            var rows = document.querySelectorAll('#subjects-table tr');
-            var data = [];
-            for (var i = 1; i < rows.length; i++) {
-                var cells = rows[i].children;
-                data.push({
-                    code: cells[0].innerText.trim(),
-                    name: cells[1].innerText.trim(),
-                    score_10: cells[2].innerText.trim(),
-                    letter: cells[3].innerText.trim(),
-                    credits: cells[4].innerText.trim()
-                });
-            }
-            document.getElementById('subjects_json').value = JSON.stringify(data);
+    }
+    recalcBtn.onclick = function() {
+        renderResult();
+    };
+    resetBtn.onclick = function() {
+        resultArea.style.display = 'none';
+        actionBtns.style.display = 'none';
+        gpaText.value = '';
+        inputForm.style.display = 'flex';
+        currentSubjects = [];
+        currentInfo = {};
         };
         </script>
-    </div>
 </body>
 </html> 
