@@ -141,26 +141,28 @@ tr:hover {
     cursor: pointer;
 }
 .tutorial {
-    background: #f4f8fb;
-    border-left: 4px solid #2a5298;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin: 12px 0 18px 0;
+    background: #eaf1fb; /* nền xanh nhạt hơn để nổi bật */
+    border: 1.5px solid #2a5298; /* viền xanh đồng bộ */
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 14px 0 20px 0;
     color: #1e3c72;
-    font-size: 0.98em;
-    line-height: 1.5;
-    box-shadow: 0 1px 4px rgba(42,82,152,0.05);
+    font-size: 1em;
+    line-height: 1.55;
+    box-shadow: 0 2px 8px rgba(42,82,152,0.08);
 }
 .tutorial h3 {
     color: #2a5298;
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
 }
 .tutorial ul {
     margin: 8px 0 12px 20px;
+    padding-left: 5px;
 }
 .tutorial p {
-    margin: 6px 0;
+    margin: 8px 0;
 }
 @media (max-width: 600px) {
     .container { padding: 10px; }
@@ -180,3 +182,4 @@ tr:hover {
     z-index: 100;
     letter-spacing: 0.5px;
 }
+
