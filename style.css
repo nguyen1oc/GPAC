@@ -140,11 +140,34 @@ tr:hover {
     font-weight: normal;
     cursor: pointer;
 }
+.tutorial {
+    background: #f4f8fb;
+    border-left: 4px solid #2a5298;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0 18px 0;
+    color: #1e3c72;
+    font-size: 0.98em;
+    line-height: 1.5;
+    box-shadow: 0 1px 4px rgba(42,82,152,0.05);
+}
+.tutorial h3 {
+    color: #2a5298;
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+.tutorial ul {
+    margin: 8px 0 12px 20px;
+}
+.tutorial p {
+    margin: 6px 0;
+}
 @media (max-width: 600px) {
     .container { padding: 10px; }
     th, td { font-size: 0.95em; padding: 7px 6px; }
     .info-card, .gpa { padding: 10px 8px; }
     .center-btn { margin-bottom: 10px; }
+    .tutorial { padding: 12px 10px; font-size: 0.9em; }
 }
 .credit {
     position: fixed;
@@ -156,4 +179,4 @@ tr:hover {
     opacity: 0.85;
     z-index: 100;
     letter-spacing: 0.5px;
-} 
+}
