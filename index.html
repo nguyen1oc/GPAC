@@ -11,6 +11,28 @@
         <h2>GPA Calculator</h2>
         <form id="input-form">
             <label>Paste bảng điểm:</label><br>
+            <div class="tutorial">
+            <h3>Tutorial</h3>
+            <p>
+                Go to <strong>MyBK → Tiến độ học tập</strong> → press 
+                <strong>Ctrl + A</strong> and <strong>Ctrl + C</strong>, then 
+                <strong>Ctrl + V</strong> into the box below.
+            </p>
+        
+            <h3>Features</h3>
+            <ul>
+                <li>Calculate current GPA on a 4.0 scale and 10-point scale.</li>
+                <li>Calculate GPA after improving old courses — double click on the grade (4.0 or 10) of that course.</li>
+                <li>Calculate GPA for future semesters — double click on the grade (4.0 or 10) of that course.</li>
+            </ul>
+        
+            <p><strong>Note:</strong> Free elective courses are not included since the parser only extracts the information shown in the <em>Tiến độ học tập</em> page. You may replace them with major-specific courses (as they have the same credit weight).</p>
+        
+            <p>
+                For feedback or questions, please contact: 
+                <a href="mailto:nguyenloc.cse1606@gmail.com">nguyenloc.cse1606@gmail.com</a>
+            </p>
+        </div>
             <textarea id="gpa_text" required></textarea><br>
             <button type="submit">Phân tích & Tính GPA</button>
         </form>
