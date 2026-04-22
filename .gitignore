@@ -1,0 +1,5 @@
+.vercel
+.env
+gpa.txt
+calculate_gpa.py
+web_gpa.py
