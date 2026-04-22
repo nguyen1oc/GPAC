@@ -6,20 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <h2>GPA Calculator</h2>
-        <form id="input-form">
-            <label>Paste bảng điểm:</label><br>
-            <textarea id="gpa_text" required></textarea><br>
-            <button type="submit">Phân tích & Tính GPA</button>
-        </form>
-        <div id="result-area" style="display:none;"></div>
-        <div class="center-btn" id="action-btns" style="display:none;">
-            <button id="recalc-btn" style="display:none;">Tính lại GPA</button>
-            <button id="reset-btn">Nhập lại bảng điểm</button>
-        </div>
+<div class="container">
+    <h2>GPA Calculator</h2>
+
+    <div class="guide">
+        <h4>Hướng dẫn sử dụng</h4>
+        <ul>
+            <li>Vào <b>MyBK</b> → <b>Tiến độ học tập</b></li>
+            <li>Bôi đen toàn bộ bảng điểm → nhấn <b>Ctrl + C</b></li>
+            <li>Dán vào ô bên dưới bằng <b>Ctrl + V</b></li>
+            <li>Nhấn <b>“Phân tích & Tính GPA”</b> để xem kết quả</li>
+        </ul>
+
+        <h4>Tính năng</h4>
+        <ul>
+            <li>Tra cứu và tính GPA theo thang <b>4.0 / 10.0</b></li>
+            <li>Double click vào từng dòng để chỉnh sửa điểm trực tiếp</li>
+            <li>Cập nhật kết quả ngay sau khi chỉnh sửa</li>
+        </ul>
     </div>
+
+    <form id="input-form">
+        <label>Paste bảng điểm:</label><br>
+        <textarea id="gpa_text" required></textarea><br>
+        <button type="submit">Phân tích & Tính GPA</button>
+    </form>
+
+    <div id="result-area" style="display:none;"></div>
+
+    <div class="center-btn" id="action-btns" style="display:none;">
+        <button id="recalc-btn" style="display:none;">Tính lại GPA</button>
+        <button id="reset-btn">Nhập lại bảng điểm</button>
+    </div>
+</div>
     <div class="credit">credit: nguyen1oc</div>
     <script>
     // --- GPA logic in JS ---
